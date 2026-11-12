@@ -62,6 +62,14 @@ const REFERENCE_REQUIRED_KINDS: readonly WagerTransactionKind[] = [
   WagerTransactionKind.Rollback,
 ];
 
+// REFUND/ROLLBACK must carry a reference; WIN may optionally reference its BET
+// (challenge section 7). Every other kind must not carry a reference.
+const REFERENCE_ALLOWED_KINDS: readonly WagerTransactionKind[] = [
+  WagerTransactionKind.Refund,
+  WagerTransactionKind.Rollback,
+  WagerTransactionKind.Win,
+];
+
 /**
  * A single provider operation against a wallet. It owns its own lifecycle state
  * machine; the valid transitions are:
@@ -104,7 +112,7 @@ export class WagerTransaction {
     if (requiresRef && !props.referenceExternalTransactionId) {
       throw new InvalidInputError(`${props.kind} requires referenceExternalTransactionId`);
     }
-    if (!requiresRef && props.referenceExternalTransactionId) {
+    if (!REFERENCE_ALLOWED_KINDS.includes(props.kind) && props.referenceExternalTransactionId) {
       throw new InvalidInputError(`${props.kind} must not carry a reference`);
     }
     return new WagerTransaction(

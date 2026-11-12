@@ -93,6 +93,26 @@ describe('WIN / LOSS', () => {
     const d = decide(wallet('100.00'), tx({ kind: WagerTransactionKind.Loss }));
     expect(d).toEqual({ type: 'processed', direction: null });
   });
+
+  it('WIN may link a processed BET reference and still credits its own amount', () => {
+    const bet = tx({
+      id: 'bet',
+      kind: WagerTransactionKind.Bet,
+      status: WagerTransactionStatus.Processed,
+    });
+    const win = tx({
+      id: 'win',
+      kind: WagerTransactionKind.Win,
+      ref: 'bet',
+      money: { amount: '50.00', currency: 'BRL' },
+    });
+    const d = decide(wallet('0.00'), win, bet);
+    expect(d).toEqual({
+      type: 'processed',
+      direction: LedgerDirection.Credit,
+      referenceTransactionId: 'bet',
+    });
+  });
 });
 
 describe('identity checks', () => {

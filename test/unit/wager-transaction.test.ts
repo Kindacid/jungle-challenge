@@ -50,6 +50,13 @@ describe('WagerTransaction.create', () => {
     expect(() => make(WagerTransactionKind.Bet, 'ext-x')).toThrow(InvalidInputError);
     expect(() => make(WagerTransactionKind.Loss, 'ext-x')).toThrow(InvalidInputError);
   });
+
+  it('allows WIN to optionally carry a reference (links its BET)', () => {
+    expect(() => make(WagerTransactionKind.Win)).not.toThrow(); // reference optional
+    const win = make(WagerTransactionKind.Win, 'ext-bet');
+    expect(win.referenceExternalTransactionId).toBe('ext-bet');
+    expect(win.requiresReference()).toBe(false);
+  });
 });
 
 describe('WagerTransaction domain queries', () => {

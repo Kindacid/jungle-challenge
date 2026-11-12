@@ -89,20 +89,24 @@ export class ResolvePendingReferencesJob implements OnModuleInit, OnApplicationS
       this.transactions.findDuePendingReferences(em, now, limit),
     );
     for (const candidate of candidates) {
-      await this.resolveOne(candidate.id);
+      await this.resolveOne(candidate);
     }
     return candidates.length;
   }
 
-  private async resolveOne(id: string): Promise<void> {
+  private async resolveOne(candidate: WagerTransaction): Promise<void> {
     await this.txRunner.run(async (em) => {
       const now = this.clock.now();
-      const locked = await this.transactions.lockPendingForUpdate(em, id);
+
+      // Lock order MUST be wallet-first, then the transaction row — the same
+      // order the submit use case uses when it nudges dependents. Locking the
+      // transaction first here would create an ABBA deadlock with that path.
+      const wallet = await this.wallets.findForUpdate(em, candidate.walletId);
+      if (!wallet) return;
+
+      const locked = await this.transactions.lockPendingForUpdate(em, candidate.id);
       if (!locked) return; // resolved or being handled elsewhere
       const { transaction: tx, attempts } = locked;
-
-      const wallet = await this.wallets.findForUpdate(em, tx.walletId);
-      if (!wallet) return;
 
       const reference = tx.referenceExternalTransactionId
         ? await this.transactions.findByProviderExternalId(

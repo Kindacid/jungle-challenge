@@ -15,6 +15,7 @@ import {
   TransientInfrastructureError,
   WalletNotFoundError,
 } from '../../shared/application/application-errors.ts';
+import { DomainError } from '../../shared/domain/domain-error.ts';
 import { Money } from '../../shared/domain/money.ts';
 import {
   SubmitWagerTransactionUseCase,
@@ -158,6 +159,12 @@ export class WagerTransactionsConsumer implements OnModuleInit, OnApplicationShu
     }
     if (err instanceof WalletNotFoundError) {
       await this.deadLetter(message, 'WALLET_NOT_FOUND', asMessage(err), walletId);
+      return;
+    }
+    // Domain validation errors (e.g. REFUND without a reference) are permanent —
+    // a plain resend will never succeed, so route straight to the DLQ.
+    if (err instanceof DomainError) {
+      await this.deadLetter(message, err.code, asMessage(err), walletId);
       return;
     }
 

@@ -104,6 +104,9 @@ export class ProblemDetailsFilter implements ExceptionFilter {
 
     // Unwrapped infrastructure error: retry if transient, else internal.
     const kind = classifyPgError(exception);
+    if (kind === 'unique_violation') {
+      return make(409, 'CONFLICT', 'conflicting unique constraint', false);
+    }
     if (isTransient(kind)) {
       return make(503, 'TRANSIENT_INFRASTRUCTURE', `transient database error (${kind})`, true);
     }
