@@ -115,6 +115,16 @@ async function main(): Promise<void> {
   const outboxLag = await scrapeMetric('outbox_lag_seconds');
   const outboxPending = await scrapeMetric('outbox_pending');
 
+  // Wait for the outbox to fully drain and record how long it took — a steady
+  // measure of publisher throughput, instead of the instantaneous backlog above.
+  const drainStart = performance.now();
+  let finalPending = outboxPending;
+  while (finalPending > 0 && performance.now() - drainStart < 30_000) {
+    await new Promise((r) => setTimeout(r, 500));
+    finalPending = await scrapeMetric('outbox_pending');
+  }
+  const drainMs = performance.now() - drainStart;
+
   latencies.sort((a, b) => a - b);
   const ok = (statusCounts.get(200) ?? 0) + (statusCounts.get(202) ?? 0);
   const rejected = statusCounts.get(422) ?? 0;
@@ -143,16 +153,20 @@ ${COLD} wallets "frias". Cada requisição usa uma \`Idempotency-Key\` única.
 | Erros | ${errors} |
 | Taxa de erro | ${((errors / TOTAL) * 100).toFixed(2)} % |
 | Conflitos de lock (delta) | ${(lockConflictsAfter - lockConflictsBefore).toString()} |
-| Outbox lag (s) | ${Number.isNaN(outboxLag) ? 'n/d' : outboxLag.toFixed(3)} |
-| Outbox pendente | ${Number.isNaN(outboxPending) ? 'n/d' : outboxPending.toString()} |
+| Outbox pendente logo após a carga | ${Number.isNaN(outboxPending) ? 'n/d' : outboxPending.toString()} |
+| Outbox lag no pico (s) | ${Number.isNaN(outboxLag) ? 'n/d' : outboxLag.toFixed(3)} |
+| Tempo para drenar a outbox | ${(drainMs / 1000).toFixed(2)} s |
+| Outbox pendente final | ${Number.isNaN(finalPending) ? 'n/d' : finalPending.toString()} |
 
 ## Análise
 
 As wallets quentes serializam no lock pessimista por linha, então a latência p99
 reflete o enfileiramento nelas; as wallets frias processam em paralelo. Erros
-devem ficar em ~0% — rejeições por saldo não ocorrem (saldo inicial alto). Um
-outbox lag baixo indica que o publisher acompanha a produção de eventos. Conflitos
-de lock > 0 indicam retries transitórios absorvidos pelo TransactionRunner.
+devem ficar em ~0% — rejeições por saldo não ocorrem (saldo inicial alto). A
+"outbox pendente logo após a carga" é o backlog instantâneo no fim do burst; o
+"tempo para drenar" mostra os publishers (um por instância) escoando esse backlog
+até zero sem perder nem duplicar eventos. Conflitos de lock > 0 indicam retries
+transitórios absorvidos pelo TransactionRunner.
 
 > Números brutos dependem da máquina e do ambiente Docker; o objetivo é a forma da
 > distribuição e a estabilidade sob contenção, não um RPS máximo.
