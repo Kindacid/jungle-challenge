@@ -1,0 +1,3 @@
+[test]
+# Preload reflect-metadata so suites that touch Nest/MikroORM decorators work.
+preload = ["./test/support/preload.ts"]
