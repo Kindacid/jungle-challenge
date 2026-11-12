@@ -1,20 +1,23 @@
 import 'reflect-metadata';
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { Logger as PinoLogger } from 'nestjs-pino';
 import { AppModule } from './app.module.ts';
 import { loadConfig } from './config/app-config.ts';
 
 async function bootstrap(): Promise<void> {
   const config = loadConfig();
-  const logger = new Logger('bootstrap');
 
-  const app = await NestFactory.create(AppModule, { bufferLogs: false });
+  // Buffer early logs until the pino logger is wired, then route all Nest logs
+  // (including the workers') through structured JSON logging.
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.useLogger(app.get(PinoLogger));
 
   // Graceful shutdown: workers listen for these to drain in-flight work.
   app.enableShutdownHooks();
 
   await app.listen(config.httpPort, '0.0.0.0');
-  logger.log(
+  new Logger('bootstrap').log(
     `wagering service up on :${config.httpPort} — role=${config.role} instance=${config.instanceId}`,
   );
 }

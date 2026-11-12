@@ -7,6 +7,7 @@ import { DatabaseModule } from './database/database.module.ts';
 import { ProblemDetailsFilter } from './http/problem-details.filter.ts';
 import { MessagingPersistenceModule } from './messaging/messaging-persistence.module.ts';
 import { SqsModule } from './messaging/sqs/sqs.module.ts';
+import { AppLoggerModule } from './observability/logger.module.ts';
 import { ObservabilityModule } from './observability/observability.module.ts';
 import { CoreModule } from './shared/core.module.ts';
 import { WageringModule } from './wagering/wagering.module.ts';
@@ -17,6 +18,7 @@ import { WorkerModule } from './worker/worker.module.ts';
   imports: [
     // Global infrastructure.
     ConfigModule,
+    AppLoggerModule,
     CoreModule,
     DatabaseModule,
     SqsModule,
