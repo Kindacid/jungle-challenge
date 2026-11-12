@@ -26,7 +26,9 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: wagering
     ports:
-      - "5432:5432"
+      # Host port is overridable (default 5432). Set PG_HOST_PORT in .env if a
+      # local PostgreSQL already occupies 5432 on your machine.
+      - "${PG_HOST_PORT:-5432}:5432"
     volumes:
       - ./docker/postgres-init:/docker-entrypoint-initdb.d:ro
       - pgdata:/var/lib/postgresql/data

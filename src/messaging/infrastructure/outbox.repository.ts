@@ -66,9 +66,12 @@ export class OutboxRepository {
     batchSize: number,
     now: Date,
   ): Promise<OutboxMessage[]> {
+    // Compute the lease expiry in JS and bind it as a timestamp — avoids binding
+    // a Date into interval arithmetic, which Postgres reads as text.
+    const lockedUntil = new Date(now.getTime() + leaseSeconds * 1000);
     const rows = (await em.execute(
       `UPDATE outbox_messages o
-         SET locked_until = ? + (? * interval '1 second'),
+         SET locked_until = ?,
              locked_by = ?
        WHERE o.id IN (
          SELECT id FROM outbox_messages
@@ -82,7 +85,7 @@ export class OutboxRepository {
        RETURNING id, aggregate_id, event_type, event_version, payload,
                  correlation_id, occurred_at, attempts, next_attempt_at,
                  published_at, last_error`,
-      [now, leaseSeconds, lockedBy, now, now, batchSize],
+      [lockedUntil, lockedBy, now, now, batchSize],
     )) as OutboxRow[];
     return rows.map(rowToDomain);
   }
