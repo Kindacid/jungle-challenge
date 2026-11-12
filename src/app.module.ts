@@ -11,6 +11,7 @@ import { ObservabilityModule } from './observability/observability.module.ts';
 import { CoreModule } from './shared/core.module.ts';
 import { WageringModule } from './wagering/wagering.module.ts';
 import { WalletModule } from './wallet/wallet.module.ts';
+import { WorkerModule } from './worker/worker.module.ts';
 
 @Module({
   imports: [
@@ -25,6 +26,8 @@ import { WalletModule } from './wallet/wallet.module.ts';
     // Feature modules.
     WalletModule,
     WageringModule,
+    // Background workers (SQS consumer, outbox publisher, pending-ref resolver).
+    WorkerModule,
   ],
   providers: [
     {

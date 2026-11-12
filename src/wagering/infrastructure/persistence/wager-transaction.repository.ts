@@ -95,19 +95,25 @@ export class WagerTransactionRepository {
     return rows.map(wagerTxToDomain);
   }
 
-  /** Lock a single pending-reference row FOR UPDATE SKIP LOCKED (one worker wins). */
-  async lockPendingForUpdate(em: EntityManager, id: string): Promise<WagerTransaction | null> {
+  /**
+   * Lock a single pending-reference row FOR UPDATE SKIP LOCKED (one worker wins).
+   * Returns the domain transaction and its current retry attempt count.
+   */
+  async lockPendingForUpdate(
+    em: EntityManager,
+    id: string,
+  ): Promise<{ transaction: WagerTransaction; attempts: number } | null> {
     const rows = (await em.execute(
       `SELECT * FROM wager_transactions
          WHERE id = ? AND status = 'PENDING_REFERENCE'
          FOR UPDATE SKIP LOCKED`,
       [id],
-    )) as WagerTransactionRecord[];
+    )) as Array<Record<string, unknown>>;
     const raw = rows[0];
     if (!raw) return null;
     // em.execute returns snake_case columns; map via the schema's field names.
     const mapped = em.map<WagerTransactionRecord>(wagerTransactionSchema, raw);
-    return wagerTxToDomain(mapped);
+    return { transaction: wagerTxToDomain(mapped), attempts: mapped.referenceAttempts };
   }
 
   /** Nudge dependents waiting on a now-available reference so the worker retries soon. */
