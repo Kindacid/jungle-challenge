@@ -1,9 +1,12 @@
-import { InvalidInputError, InvalidTransactionStateError } from '../../shared/domain/domain-error.ts';
-import { Money } from '../../shared/domain/money.ts';
+import {
+  InvalidInputError,
+  InvalidTransactionStateError,
+} from '../../shared/domain/domain-error.ts';
+import type { Money } from '../../shared/domain/money.ts';
 import { LedgerDirection } from '../../wallet/domain/ledger-direction.ts';
 import type { FailureCode } from './failure-code.ts';
 import { WagerTransactionKind } from './wager-transaction-kind.ts';
-import { isTerminalStatus, WagerTransactionStatus } from './wager-transaction-status.ts';
+import { WagerTransactionStatus, isTerminalStatus } from './wager-transaction-status.ts';
 
 export interface CreateWagerTransactionProps {
   id: string;
@@ -187,7 +190,11 @@ export class WagerTransaction {
 
   // ---- transitions --------------------------------------------------------
 
-  markProcessed(referenceTransactionId: string | undefined, at: Date, observedBalance: Money): void {
+  markProcessed(
+    referenceTransactionId: string | undefined,
+    at: Date,
+    observedBalance: Money,
+  ): void {
     this.assertNotTerminal(WagerTransactionStatus.Processed);
     this._status = WagerTransactionStatus.Processed;
     this._referenceTransactionId = referenceTransactionId;

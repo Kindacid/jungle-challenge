@@ -1,5 +1,5 @@
 import type { EntityManager } from '@mikro-orm/postgresql';
-import { inboxMessageSchema, type InboxMessageRecord } from '../../database/records.ts';
+import { type InboxMessageRecord, inboxMessageSchema } from '../../database/records.ts';
 import { InboxMessage } from '../inbox/inbox-message.ts';
 
 export class InboxRepository {

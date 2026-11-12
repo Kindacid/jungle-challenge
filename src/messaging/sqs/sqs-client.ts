@@ -3,10 +3,10 @@ import {
   CreateQueueCommand,
   DeleteMessageCommand,
   GetQueueAttributesCommand,
-  ReceiveMessageCommand,
-  SendMessageCommand,
-  SQSClient,
   type Message,
+  ReceiveMessageCommand,
+  SQSClient,
+  SendMessageCommand,
 } from '@aws-sdk/client-sqs';
 import type { SqsConfig } from '../../config/app-config.ts';
 

@@ -1,10 +1,10 @@
 import type { MoneyProps } from '../../shared/domain/money.ts';
-import type { LedgerDirection } from '../../wallet/domain/ledger-direction.ts';
-import type { WalletLedgerEntry } from '../../wallet/domain/wallet-ledger-entry.ts';
-import type { Wallet } from '../../wallet/domain/wallet.ts';
 import type { FailureCode } from '../../wagering/domain/failure-code.ts';
 import type { WagerTransactionKind } from '../../wagering/domain/wager-transaction-kind.ts';
 import type { WagerTransaction } from '../../wagering/domain/wager-transaction.ts';
+import type { LedgerDirection } from '../../wallet/domain/ledger-direction.ts';
+import type { WalletLedgerEntry } from '../../wallet/domain/wallet-ledger-entry.ts';
+import type { Wallet } from '../../wallet/domain/wallet.ts';
 import { type EventContext, IntegrationEvent } from './integration-event.ts';
 
 // ---------------------------------------------------------------------------

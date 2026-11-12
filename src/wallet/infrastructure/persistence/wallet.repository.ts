@@ -1,9 +1,9 @@
 import { type EntityManager, LockMode } from '@mikro-orm/postgresql';
 import {
-  walletLedgerEntrySchema,
-  walletSchema,
   type WalletLedgerEntryRecord,
   type WalletRecord,
+  walletLedgerEntrySchema,
+  walletSchema,
 } from '../../../database/records.ts';
 import type { WalletLedgerEntry } from '../../domain/wallet-ledger-entry.ts';
 import type { Wallet } from '../../domain/wallet.ts';
@@ -36,9 +36,13 @@ export interface ReconciliationTotals {
 export class WalletRepository {
   /** Lock the wallet row FOR UPDATE — the per-wallet concurrency boundary. */
   async findForUpdate(em: EntityManager, id: string): Promise<Wallet | null> {
-    const rec = await em.findOne<WalletRecord>(walletSchema, { id }, {
-      lockMode: LockMode.PESSIMISTIC_WRITE,
-    });
+    const rec = await em.findOne<WalletRecord>(
+      walletSchema,
+      { id },
+      {
+        lockMode: LockMode.PESSIMISTIC_WRITE,
+      },
+    );
     return rec ? walletToDomain(rec) : null;
   }
 
@@ -85,9 +89,7 @@ export class WalletRepository {
     });
     const page = rows.slice(0, limit);
     const nextCursor =
-      rows.length > limit && page.length > 0
-        ? String(page[page.length - 1]?.walletVersion)
-        : null;
+      rows.length > limit && page.length > 0 ? String(page[page.length - 1]?.walletVersion) : null;
     return { entries: page.map(ledgerEntryToDomain), nextCursor };
   }
 

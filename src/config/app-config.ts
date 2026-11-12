@@ -6,6 +6,9 @@
 
 export type AppRole = 'api' | 'worker' | 'all';
 
+/** DI token for the parsed AppConfig. */
+export const APP_CONFIG = Symbol('APP_CONFIG');
+
 function str(name: string, fallback?: string): string {
   const v = process.env[name];
   if (v === undefined || v === '') {

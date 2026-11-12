@@ -1,5 +1,5 @@
 import { Migrator } from '@mikro-orm/migrations';
-import { defineConfig, type Options } from '@mikro-orm/postgresql';
+import { type Options, PostgreSqlDriver, defineConfig } from '@mikro-orm/postgresql';
 import type { AppConfig } from '../config/app-config.ts';
 import { Migration20261112_0001_init } from './migrations/Migration20261112_0001_init.ts';
 import { ALL_SCHEMAS } from './records.ts';
@@ -16,20 +16,22 @@ export function createOrmConfig(config: AppConfig, opts: { asOwner?: boolean } =
   const password = opts.asOwner ? pg.ownerPassword : pg.appPassword;
 
   return defineConfig({
+    // Explicit driver so @mikro-orm/nestjs forRootAsync (useFactory) knows the
+    // dialect without inferring it from a static import.
+    driver: PostgreSqlDriver,
     host: pg.host,
     port: pg.port,
     dbName: pg.dbName,
     user,
     password,
+    // Skip the initial connection (used by the DI smoke check; never in prod).
+    connect: process.env.ORM_SKIP_CONNECT !== 'true',
     // Bound how long a statement waits for a row lock and how long any statement
     // or idle-in-transaction session may run. Applied per connection via libpq
     // `options`, so every session inherits them without a per-tx `SET LOCAL`.
     driverOptions: {
       connection: {
-        options:
-          `-c lock_timeout=${config.walletLockTimeoutMs} ` +
-          '-c statement_timeout=30000 ' +
-          '-c idle_in_transaction_session_timeout=15000',
+        options: `-c lock_timeout=${config.walletLockTimeoutMs} -c statement_timeout=30000 -c idle_in_transaction_session_timeout=15000`,
       },
     },
     entities: ALL_SCHEMAS,
@@ -44,9 +46,7 @@ export function createOrmConfig(config: AppConfig, opts: { asOwner?: boolean } =
       disableForeignKeys: false,
       allOrNothing: true,
       snapshot: false,
-      migrationsList: [
-        { name: 'Migration20261112_0001_init', class: Migration20261112_0001_init },
-      ],
+      migrationsList: [{ name: 'Migration20261112_0001_init', class: Migration20261112_0001_init }],
     },
     debug: config.nodeEnv === 'development' && process.env.MIKRO_ORM_DEBUG === 'true',
   });

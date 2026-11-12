@@ -26,7 +26,8 @@
       },
       "style": {
         "noNonNullAssertion": "off",
-        "useImportType": "error"
+        "useImportType": "off",
+        "noUnusedTemplateLiteral": "off"
       },
       "complexity": {
         "noForEach": "off"
@@ -34,6 +35,9 @@
     }
   },
   "javascript": {
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    },
     "formatter": {
       "quoteStyle": "single",
       "trailingCommas": "all",

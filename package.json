@@ -16,6 +16,7 @@
     "migrate:down": "bun scripts/migrate.ts down",
     "migrate:fresh": "bun scripts/migrate.ts fresh",
     "queues:create": "bun scripts/create-queues.ts",
+    "di-check": "bun scripts/di-check.ts",
     "test": "bun test test/unit test/integration test/concurrency",
     "test:unit": "bun test test/unit",
     "test:integration": "bun test test/integration",
@@ -52,7 +53,5 @@
   "engines": {
     "bun": ">=1.1.0"
   },
-  "trustedDependencies": [
-    "@biomejs/biome"
-  ]
+  "trustedDependencies": ["@biomejs/biome"]
 }

@@ -1,5 +1,5 @@
 import { InvalidInputError } from '../../shared/domain/domain-error.ts';
-import { Money } from '../../shared/domain/money.ts';
+import type { Money } from '../../shared/domain/money.ts';
 import { LedgerDirection } from './ledger-direction.ts';
 
 export interface CreateLedgerEntryProps {

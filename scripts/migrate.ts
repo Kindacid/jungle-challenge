@@ -21,12 +21,16 @@ async function main(): Promise<void> {
     switch (command) {
       case 'up': {
         const applied = await migrator.up();
-        console.log(`applied ${applied.length} migration(s): ${applied.map((m) => m.name).join(', ') || '(none)'}`);
+        console.log(
+          `applied ${applied.length} migration(s): ${applied.map((m) => m.name).join(', ') || '(none)'}`,
+        );
         break;
       }
       case 'down': {
         const reverted = await migrator.down();
-        console.log(`reverted ${reverted.length} migration(s): ${reverted.map((m) => m.name).join(', ') || '(none)'}`);
+        console.log(
+          `reverted ${reverted.length} migration(s): ${reverted.map((m) => m.name).join(', ') || '(none)'}`,
+        );
         break;
       }
       case 'fresh': {

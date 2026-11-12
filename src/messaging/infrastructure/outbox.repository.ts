@@ -1,5 +1,5 @@
 import type { EntityManager } from '@mikro-orm/postgresql';
-import { outboxMessageSchema, type OutboxMessageRecord } from '../../database/records.ts';
+import { type OutboxMessageRecord, outboxMessageSchema } from '../../database/records.ts';
 import { OutboxMessage } from '../outbox/outbox-message.ts';
 
 interface OutboxRow {
@@ -119,7 +119,9 @@ export class OutboxRepository {
   }
 
   /** Lag metrics: number of pending events and the oldest pending occurredAt. */
-  async pendingStats(em: EntityManager): Promise<{ pending: number; oldestOccurredAt: Date | null }> {
+  async pendingStats(
+    em: EntityManager,
+  ): Promise<{ pending: number; oldestOccurredAt: Date | null }> {
     const rows = (await em.execute(
       `SELECT COUNT(*)::int AS pending, MIN(occurred_at) AS oldest
          FROM outbox_messages WHERE published_at IS NULL`,

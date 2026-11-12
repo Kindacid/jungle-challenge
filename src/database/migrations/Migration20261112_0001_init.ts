@@ -189,7 +189,9 @@ export class Migration20261112_0001_init extends Migration {
         CONSTRAINT wle_tx_fk FOREIGN KEY (transaction_id) REFERENCES wager_transactions (id)
       );
     `);
-    this.addSql(`CREATE INDEX wle_wallet_idx ON wallet_ledger_entries (wallet_id, wallet_version);`);
+    this.addSql(
+      `CREATE INDEX wle_wallet_idx ON wallet_ledger_entries (wallet_id, wallet_version);`,
+    );
 
     // Ledger chain: balance_before must equal the previous entry's balance_after
     // (or 0 when this is the first entry for the wallet).

@@ -1,5 +1,5 @@
-import { IsolationLevel, type EntityManager, type MikroORM } from '@mikro-orm/postgresql';
-import { classifyPgError, isTransient, type PgErrorKind } from './pg-error.ts';
+import { type EntityManager, IsolationLevel, type MikroORM } from '@mikro-orm/postgresql';
+import { type PgErrorKind, classifyPgError, isTransient } from './pg-error.ts';
 
 /** Work executed inside one SQL transaction; receives the transactional EM. */
 export type UnitOfWork<T> = (em: EntityManager) => Promise<T>;

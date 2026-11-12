@@ -41,7 +41,9 @@ export function getSqlState(error: unknown): string | undefined {
     if (typeof code === 'string' && ['ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT'].includes(code)) {
       return code;
     }
-    e = (e as { cause?: unknown; previous?: unknown }).cause ?? (e as { previous?: unknown }).previous;
+    e =
+      (e as { cause?: unknown; previous?: unknown }).cause ??
+      (e as { previous?: unknown }).previous;
   }
   return undefined;
 }
@@ -50,7 +52,11 @@ export function classifyPgError(error: unknown): PgErrorKind {
   const code = getSqlState(error);
   if (!code) return 'unknown';
   if (BY_CODE[code]) return BY_CODE[code];
-  if (code.startsWith('08') || code === '57P01' || ['ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT'].includes(code)) {
+  if (
+    code.startsWith('08') ||
+    code === '57P01' ||
+    ['ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT'].includes(code)
+  ) {
     return 'connection';
   }
   return 'unknown';
@@ -78,7 +84,9 @@ export function getConstraintName(error: unknown): string | undefined {
   for (let depth = 0; depth < 5 && e && typeof e === 'object'; depth++) {
     const c = (e as { constraint?: unknown }).constraint;
     if (typeof c === 'string') return c;
-    e = (e as { cause?: unknown; previous?: unknown }).cause ?? (e as { previous?: unknown }).previous;
+    e =
+      (e as { cause?: unknown; previous?: unknown }).cause ??
+      (e as { previous?: unknown }).previous;
   }
   return undefined;
 }

@@ -1,9 +1,6 @@
-import type {
-  WalletLedgerEntryRecord,
-  WalletRecord,
-} from '../../../database/records.ts';
+import type { WalletLedgerEntryRecord, WalletRecord } from '../../../database/records.ts';
 import { Money } from '../../../shared/domain/money.ts';
-import { LedgerDirection } from '../../domain/ledger-direction.ts';
+import type { LedgerDirection } from '../../domain/ledger-direction.ts';
 import { WalletLedgerEntry } from '../../domain/wallet-ledger-entry.ts';
 import { Wallet } from '../../domain/wallet.ts';
 

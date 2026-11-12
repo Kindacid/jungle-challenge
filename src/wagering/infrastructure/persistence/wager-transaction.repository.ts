@@ -1,12 +1,12 @@
 import type { EntityManager } from '@mikro-orm/postgresql';
-import { wagerTransactionSchema, type WagerTransactionRecord } from '../../../database/records.ts';
+import { type WagerTransactionRecord, wagerTransactionSchema } from '../../../database/records.ts';
 import { WagerTransactionKind } from '../../domain/wager-transaction-kind.ts';
 import { WagerTransactionStatus } from '../../domain/wager-transaction-status.ts';
 import type { WagerTransaction } from '../../domain/wager-transaction.ts';
 import {
+  type WagerTransactionPersistenceExtras,
   wagerTxToDomain,
   wagerTxToRecord,
-  type WagerTransactionPersistenceExtras,
 } from './wager-transaction.mappers.ts';
 
 export class WagerTransactionRepository {

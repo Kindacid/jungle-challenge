@@ -4,11 +4,11 @@ import {
   InvalidTransactionStateError,
 } from '../../src/shared/domain/domain-error.ts';
 import { Money } from '../../src/shared/domain/money.ts';
-import { LedgerDirection } from '../../src/wallet/domain/ledger-direction.ts';
 import { FailureCode } from '../../src/wagering/domain/failure-code.ts';
 import { WagerTransactionKind } from '../../src/wagering/domain/wager-transaction-kind.ts';
 import { WagerTransactionStatus } from '../../src/wagering/domain/wager-transaction-status.ts';
 import { WagerTransaction } from '../../src/wagering/domain/wager-transaction.ts';
+import { LedgerDirection } from '../../src/wallet/domain/ledger-direction.ts';
 
 const brl = (a: string) => Money.from({ amount: a, currency: 'BRL' });
 const now = new Date('2026-01-01T00:00:00Z');

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
+import { WalletBalanceChanged } from '../../src/messaging/events/wagering-events.ts';
 import { InboxMessage } from '../../src/messaging/inbox/inbox-message.ts';
 import { OutboxMessage } from '../../src/messaging/outbox/outbox-message.ts';
-import { WalletBalanceChanged } from '../../src/messaging/events/wagering-events.ts';
 import { Money } from '../../src/shared/domain/money.ts';
 import { LedgerDirection } from '../../src/wallet/domain/ledger-direction.ts';
 import { WalletLedgerEntry } from '../../src/wallet/domain/wallet-ledger-entry.ts';

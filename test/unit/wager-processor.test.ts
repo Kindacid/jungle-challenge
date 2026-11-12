@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'bun:test';
 import { Money, type MoneyProps } from '../../src/shared/domain/money.ts';
-import { LedgerDirection } from '../../src/wallet/domain/ledger-direction.ts';
-import { Wallet } from '../../src/wallet/domain/wallet.ts';
 import { FailureCode } from '../../src/wagering/domain/failure-code.ts';
 import { WagerProcessor } from '../../src/wagering/domain/wager-processor.ts';
 import { WagerTransactionKind } from '../../src/wagering/domain/wager-transaction-kind.ts';
 import { WagerTransactionStatus } from '../../src/wagering/domain/wager-transaction-status.ts';
 import { WagerTransaction } from '../../src/wagering/domain/wager-transaction.ts';
+import { LedgerDirection } from '../../src/wallet/domain/ledger-direction.ts';
+import { Wallet } from '../../src/wallet/domain/wallet.ts';
 
 const now = new Date('2026-01-01T00:00:00Z');
 const processor = new WagerProcessor();
@@ -155,7 +155,11 @@ describe('REFUND', () => {
   });
 
   it('rejects when the reference is not a BET', () => {
-    const win = tx({ id: 'win', kind: WagerTransactionKind.Win, status: WagerTransactionStatus.Processed });
+    const win = tx({
+      id: 'win',
+      kind: WagerTransactionKind.Win,
+      status: WagerTransactionStatus.Processed,
+    });
     const d = decide(
       wallet(),
       tx({ id: 'ref', kind: WagerTransactionKind.Refund, ref: 'win' }),
@@ -167,14 +171,24 @@ describe('REFUND', () => {
   it('rejects on amount mismatch', () => {
     const d = decide(
       wallet(),
-      tx({ id: 'ref', kind: WagerTransactionKind.Refund, ref: 'bet', money: { amount: '30.00', currency: 'BRL' } }),
+      tx({
+        id: 'ref',
+        kind: WagerTransactionKind.Refund,
+        ref: 'bet',
+        money: { amount: '30.00', currency: 'BRL' },
+      }),
       bet(),
     );
     expect(d).toEqual({ type: 'rejected', code: FailureCode.REFERENCE_AMOUNT_MISMATCH });
   });
 
   it('rejects a reference from a different round', () => {
-    const otherBet = tx({ id: 'bet', kind: WagerTransactionKind.Bet, roundId: 'r2', status: WagerTransactionStatus.Processed });
+    const otherBet = tx({
+      id: 'bet',
+      kind: WagerTransactionKind.Bet,
+      roundId: 'r2',
+      status: WagerTransactionStatus.Processed,
+    });
     const d = decide(
       wallet(),
       tx({ id: 'ref', kind: WagerTransactionKind.Refund, ref: 'bet', roundId: 'r1' }),
@@ -196,7 +210,11 @@ describe('REFUND', () => {
 
 describe('ROLLBACK', () => {
   it('credits back a BET (inverse of a debit)', () => {
-    const bet = tx({ id: 'bet', kind: WagerTransactionKind.Bet, status: WagerTransactionStatus.Processed });
+    const bet = tx({
+      id: 'bet',
+      kind: WagerTransactionKind.Bet,
+      status: WagerTransactionStatus.Processed,
+    });
     const d = decide(
       wallet('0.00'),
       tx({ id: 'rb', kind: WagerTransactionKind.Rollback, ref: 'bet' }),
@@ -210,7 +228,11 @@ describe('ROLLBACK', () => {
   });
 
   it('debits back a WIN, and rejects when that would overdraw', () => {
-    const win = tx({ id: 'win', kind: WagerTransactionKind.Win, status: WagerTransactionStatus.Processed });
+    const win = tx({
+      id: 'win',
+      kind: WagerTransactionKind.Win,
+      status: WagerTransactionStatus.Processed,
+    });
     const rb = tx({ id: 'rb', kind: WagerTransactionKind.Rollback, ref: 'win' });
 
     // Enough balance -> debit.
