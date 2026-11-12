@@ -1,0 +1,84 @@
+name: wagering
+
+x-app-env: &app-env
+  NODE_ENV: production
+  LOG_LEVEL: info
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: wagering
+  POSTGRES_APP_USER: wagering_app
+  POSTGRES_APP_PASSWORD: wagering_app_pwd
+  POSTGRES_OWNER_USER: wagering_owner
+  POSTGRES_OWNER_PASSWORD: wagering_owner_pwd
+  AWS_REGION: us-east-1
+  AWS_ENDPOINT_URL: http://ministack:4566
+  AWS_ACCESS_KEY_ID: test
+  AWS_SECRET_ACCESS_KEY: test
+  WAGER_QUEUE_URL: http://ministack:4566/000000000000/wager-transactions.fifo
+  WAGER_DLQ_URL: http://ministack:4566/000000000000/wager-transactions-dlq.fifo
+  EVENTS_QUEUE_URL: http://ministack:4566/000000000000/wagering-events.fifo
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: wagering
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./docker/postgres-init:/docker-entrypoint-initdb.d:ro
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d wagering"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  ministack:
+    image: ministackorg/ministack:latest
+    environment:
+      SERVICES: sqs
+    ports:
+      - "4566:4566"
+
+  migrate:
+    build: .
+    command: ["bun", "scripts/migrate.ts", "up"]
+    environment:
+      <<: *app-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  queue-init:
+    build: .
+    command: ["bun", "scripts/create-queues.ts"]
+    environment:
+      <<: *app-env
+    depends_on:
+      ministack:
+        condition: service_started
+    restart: on-failure
+
+  app:
+    build: .
+    command: ["bun", "src/main.ts"]
+    environment:
+      <<: *app-env
+      APP_ROLE: all
+      HTTP_PORT: "3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      queue-init:
+        condition: service_completed_successfully
+    ports:
+      - "3000-3010:3000"
+    # Scale to multiple instances with:  docker compose up --scale app=3
+    # (each replica gets its own host port from the 3000-3010 range).
+
+volumes:
+  pgdata:
