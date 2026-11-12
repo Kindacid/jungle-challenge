@@ -1,6 +1,6 @@
 /*
  * Distributed Wagering Processor — Jungle Gaming technical challenge.
- * Copyright (c) 2026 [SEU NOME COMPLETO]. Proprietary, evaluation-only. See LICENSE.
+ * Copyright (c) 2026 Mário Sergio Vieira Felix. Proprietary, evaluation-only. See LICENSE.
  */
 import 'reflect-metadata';
 import { Logger } from '@nestjs/common';
