@@ -198,6 +198,16 @@ export class SubmitWagerTransactionUseCase {
             await this.wallets.insertLedgerEntry(em, entry);
           }
 
+          // Wake any transactions parked waiting on THIS one as their reference
+          // (out-of-order delivery) so the resolver retries them promptly. This
+          // is an optimization; the scheduled worker is the real guarantee.
+          await this.transactions.nudgeDependents(
+            em,
+            command.providerId,
+            command.externalTransactionId,
+            now,
+          );
+
           events.push(
             WagerTransactionProcessed.from(
               tx,

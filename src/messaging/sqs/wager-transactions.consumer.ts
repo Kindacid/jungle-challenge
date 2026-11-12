@@ -63,37 +63,44 @@ export class WagerTransactionsConsumer implements OnModuleInit, OnApplicationShu
   }
 
   private async runLoop(): Promise<void> {
-    const { sqs } = this.config;
     while (this.running) {
-      let messages: Message[] = [];
       try {
-        messages = await this.sqs.receive(
-          sqs.wagerQueueUrl,
-          sqs.maxMessages,
-          sqs.waitTimeSeconds,
-          sqs.visibilityTimeoutSeconds,
-        );
+        await this.pollOnce();
       } catch (err) {
         this.logger.error(`receive failed: ${asMessage(err)}`);
         await delay(1000);
-        continue;
-      }
-
-      for (const message of messages) {
-        if (!this.running) {
-          // Draining: return the message to the queue immediately.
-          await this.safeChangeVisibility(message, 0);
-          continue;
-        }
-        this.inFlight += 1;
-        try {
-          await this.handle(message);
-        } finally {
-          this.inFlight -= 1;
-        }
       }
     }
     this.logger.log(`consumer loop stopped (in-flight=${this.inFlight})`);
+  }
+
+  /**
+   * Receive and handle one batch of messages. Returns how many were received.
+   * Public so tests can drive the consumer deterministically (the loop calls it
+   * continuously in production).
+   */
+  async pollOnce(): Promise<number> {
+    const { sqs } = this.config;
+    const messages = await this.sqs.receive(
+      sqs.wagerQueueUrl,
+      sqs.maxMessages,
+      sqs.waitTimeSeconds,
+      sqs.visibilityTimeoutSeconds,
+    );
+    for (const message of messages) {
+      if (this.running === false && this.loop !== null) {
+        // Draining an in-flight batch during shutdown: return to the queue.
+        await this.safeChangeVisibility(message, 0);
+        continue;
+      }
+      this.inFlight += 1;
+      try {
+        await this.handle(message);
+      } finally {
+        this.inFlight -= 1;
+      }
+    }
+    return messages.length;
   }
 
   private async handle(message: Message): Promise<void> {

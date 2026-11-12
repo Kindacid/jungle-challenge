@@ -71,7 +71,7 @@ export class ResolvePendingReferencesJob implements OnModuleInit, OnApplicationS
   private async runLoop(): Promise<void> {
     while (this.running) {
       try {
-        await this.tick();
+        await this.processDueBatch();
       } catch (err) {
         this.logger.error(`resolver tick error: ${err instanceof Error ? err.message : err}`);
       }
@@ -79,15 +79,19 @@ export class ResolvePendingReferencesJob implements OnModuleInit, OnApplicationS
     }
   }
 
-  private async tick(): Promise<void> {
+  /**
+   * Process one batch of due pending-reference transactions. Public so it can be
+   * driven deterministically by tests (the loop calls it on a timer in prod).
+   */
+  async processDueBatch(limit = 50): Promise<number> {
     const now = this.clock.now();
     const candidates = await this.txRunner.run((em) =>
-      this.transactions.findDuePendingReferences(em, now, 50),
+      this.transactions.findDuePendingReferences(em, now, limit),
     );
     for (const candidate of candidates) {
-      if (!this.running) return;
       await this.resolveOne(candidate.id);
     }
+    return candidates.length;
   }
 
   private async resolveOne(id: string): Promise<void> {

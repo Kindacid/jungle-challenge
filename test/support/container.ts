@@ -1,10 +1,12 @@
 import type { MikroORM } from '@mikro-orm/postgresql';
+import { loadConfig } from '../../src/config/app-config.ts';
 import { MikroOrmTransactionRunner } from '../../src/database/transaction-runner.ts';
 import { InboxRepository } from '../../src/messaging/infrastructure/inbox.repository.ts';
 import { OutboxRepository } from '../../src/messaging/infrastructure/outbox.repository.ts';
 import { NoopMetrics } from '../../src/observability/metrics-port.ts';
 import { SystemClock } from '../../src/shared/domain/clock.ts';
 import { Uuidv7Generator } from '../../src/shared/domain/id-generator.ts';
+import { ResolvePendingReferencesJob } from '../../src/wagering/application/resolve-pending-references.job.ts';
 import { SubmitWagerTransactionUseCase } from '../../src/wagering/application/submit-wager-transaction.use-case.ts';
 import { WagerProcessor } from '../../src/wagering/domain/wager-processor.ts';
 import { WagerTransactionRepository } from '../../src/wagering/infrastructure/persistence/wager-transaction.repository.ts';
@@ -13,6 +15,7 @@ import { WalletRepository } from '../../src/wallet/infrastructure/persistence/wa
 
 /** Wire the real use cases against a test ORM — no Nest, no mocks of PG. */
 export function buildContainer(orm: MikroORM) {
+  const config = loadConfig();
   const txRunner = new MikroOrmTransactionRunner(orm, 8);
   const wallets = new WalletRepository();
   const transactions = new WagerTransactionRepository();
@@ -35,8 +38,20 @@ export function buildContainer(orm: MikroORM) {
     metrics,
   );
   const createWallet = new CreateWalletUseCase(txRunner, wallets, transactions, outbox, ids, clock);
+  const resolver = new ResolvePendingReferencesJob(
+    config,
+    txRunner,
+    wallets,
+    transactions,
+    outbox,
+    processor,
+    ids,
+    clock,
+    metrics,
+  );
 
   return {
+    config,
     txRunner,
     wallets,
     transactions,
@@ -48,6 +63,7 @@ export function buildContainer(orm: MikroORM) {
     metrics,
     submit,
     createWallet,
+    resolver,
   };
 }
 
