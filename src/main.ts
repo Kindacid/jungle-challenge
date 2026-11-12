@@ -1,3 +1,7 @@
+/*
+ * Distributed Wagering Processor — Jungle Gaming technical challenge.
+ * Copyright (c) 2026 [SEU NOME COMPLETO]. Proprietary, evaluation-only. See LICENSE.
+ */
 import 'reflect-metadata';
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
